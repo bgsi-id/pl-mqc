@@ -1,8 +1,8 @@
 nextflow.enable.dsl=2
 
 workflow {
-    Channel.fromPath("${params.bucket}", type: 'dir').set { runDirectory }
-    MULTIQC(runDirectory, params.mqc_config)
+    Channel.fromPath("${params.dir_input}", type: 'dir').set { runDirectory }
+    MULTIQC(runDirectory, params.config_mqc)
 }
 
 process MULTIQC {
@@ -10,18 +10,23 @@ process MULTIQC {
 
     input:
     path runDirectory
-    path multiqc_config
+    path multiqcConfig
 
     output:
-    path("multiqc_general_stats.txt")
+    path("multiqc_general_stats.csv")
 
     def isoDate = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    publishDir {"${params.outdir}" }, mode: params.publish_dir_mode, pattern: "multiqc_general_stats.txt", saveAs: { "${isoDate}.txt" }
+    publishDir {"${params.outdir}" }, mode: params.publish_dir_mode, pattern: "multiqc_general_stats.csv", saveAs: { "${isoDate}.csv" }
     
     script:
-    def config = multiqc_config ? "--config $multiqc_config" : ''
+    def config = multiqcConfig ? "--config $multiqcConfig" : ''
     """
-    multiqc ${runDirectory} ${runDirectory} 
+    multiqc ${config} \
+        --data-dir \
+        --data-format csv \
+        --no-report \
+        --force \
+        ${runDirectory}
     mv multiqc_data/* .
     """
 }
