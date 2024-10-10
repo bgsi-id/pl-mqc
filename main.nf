@@ -13,7 +13,7 @@ process MULTIQC {
     path multiqcConfig
 
     output:
-    path("multiqc_general_stats.csv")
+    path("*")
 
     def isoDate = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     publishDir {"${params.outdir}" }, mode: params.publish_dir_mode, pattern: "multiqc_general_stats.csv", saveAs: { "${isoDate}.csv" }
