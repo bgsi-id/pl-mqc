@@ -26,6 +26,7 @@ process MULTIQC {
         --data-format csv \
         --no-report \
         --force \
+        --dirs-depth 2 \
         ${runDirectory}
     mv multiqc_data/* .
     """
