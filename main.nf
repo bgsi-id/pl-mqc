@@ -1,19 +1,16 @@
-nextflow.enable.dsl=2
-
 workflow {
-    // Read the list of directories to process
-    Channel.fromPath("${params.dir_list}")
-        .map { it.toString().trim() } // Ensure clean paths
-        .set { runDirectory }
+    Channel.value(params.dir_list)
+        .map { file(params.dir_list) }  // Ensure it's handled as a file
+        .set { dirListFile }
 
-    MULTIQC(runDirectory, params.config_mqc)
+    MULTIQC(dirListFile, params.config_mqc)
 }
 
 process MULTIQC {
     container 'biocontainers/multiqc:1.25--pyhdfd78af_0'
 
     input:
-    path runDirectory
+    path dirListFile
     path multiqcConfig
 
     output:
@@ -25,16 +22,8 @@ process MULTIQC {
     script:
     def config = multiqcConfig ? "--config $multiqcConfig" : ''
     """
-    multiqc ${config} \
-        --data-dir \
-        --data-format csv \
-        --no-report \
-        --force \
-        ${runDirectory}
-
+    aws s3 cp ${dirListFile} dir_list_local.txt  # Download S3 file
+    multiqc ${config} --file-list dir_list_local.txt --data-format csv --no-report --force --dirs
     mv multiqc_data/* .
-
-    # Log processed directory
-    echo "${runDirectory}" >> ${params.outdir}/processed_dirs.txt
     """
 }
