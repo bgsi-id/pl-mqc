@@ -1,19 +1,25 @@
 nextflow.enable.dsl=2
 
 workflow {
-    // Get directories from file list OR process all subdirectories
-    def selectedDirs = params.file_list ? 
-        Channel.fromPath(params.file_list).splitCsv(header: false).map { it[0] } :
-        Channel.fromPath("${params.dir_input}/*", type: 'dir').map { it.toString() }
-
-    // Collect all files from selected directories
-    selectedDirs
-        .flatMap { dir -> Channel.fromPath("${dir}/**", type: 'file') }
-        .collect()  // Converts to a list
-        .set { runFiles }
+    if (params.file_list.startsWith('s3://')) {
+        // Download the file list from S3
+        def local_file_list = file("file_list.txt")
+        exec "aws s3 cp ${params.file_list} ${local_file_list}"
+        
+        def runFiles = Channel.fromPath(local_file_list)
+            .splitCsv(header: false)
+            .map { it[0] }
+            .set { runFiles }
+    } else {
+        def runFiles = Channel.fromPath(params.file_list)
+            .splitCsv(header: false)
+            .map { it[0] }
+            .set { runFiles }
+    }
 
     MULTIQC(runFiles, params.config_mqc)
 }
+
 
 process MULTIQC {
     container 'biocontainers/multiqc:1.25--pyhdfd78af_0'
