@@ -10,7 +10,7 @@ process MULTIQC {
 
     input:
     path fileList
-    path multiqcConfig optional true
+    path multiqcConfig optional
 
     output:
     path("*")
