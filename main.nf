@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 workflow {
-    Channel.fromPath("${params.file_list}").set { fileList }
+    Channel.value(params.file_list).set { fileList }
     MULTIQC(fileList, params.config_mqc)
 }
 
@@ -22,7 +22,7 @@ process MULTIQC {
     def config = multiqcConfig ? "--config $multiqcConfig" : ''
     """
     multiqc ${config} \
-        --file-list ${fileList.toString()} \
+        --file-list ${fileList} \
         --data-format csv \
         --no-report \
         --force \
