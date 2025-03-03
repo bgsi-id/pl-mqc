@@ -21,6 +21,9 @@ process MULTIQC {
     shell:
     '''
     mkdir -p local_files
+    echo "Installing AWS CLI..."
+    apt-get update && apt-get install -y awscli || yum install -y awscli
+    
     echo "Downloading files from S3..."
     while IFS= read -r line; do
         aws s3 cp "$line" local_files/ --recursive
