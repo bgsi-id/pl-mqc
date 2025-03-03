@@ -8,8 +8,8 @@ process MULTIQC {
     container 'biocontainers/multiqc:1.25--pyhdfd78af_0'
 
     input:
-    val fileList
-    path multiqcConfig
+    path fileList
+    path multiqcConfig optional true
     val outdir
 
     output:
@@ -21,9 +21,9 @@ process MULTIQC {
     script:
     """
     mkdir -p local_files
-    while read -r file; do
+    while IFS= read -r file; do
         aws s3 cp "$file" local_files/
-    done < $fileList
+    done < "$fileList"
 
     find local_files -type f > local_file_list.txt
     
