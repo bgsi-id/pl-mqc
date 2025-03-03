@@ -22,7 +22,7 @@ process MULTIQC {
     def config = multiqcConfig ? "--config $multiqcConfig" : ''
     """
     multiqc ${config} \
-        --file-list $(cat ${fileList}) \
+        --file-list ${fileList} \
         --data-format csv \
         --no-report \
         --force \
