@@ -27,6 +27,6 @@ process MULTIQC {
         --no-report \
         --force \
         --dirs
-    mv multiqc_data/* .
+    // mv multiqc_data/* .
     """
 }
