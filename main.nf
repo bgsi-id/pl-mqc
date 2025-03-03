@@ -1,10 +1,8 @@
 nextflow.enable.dsl=2
 
 workflow {
-    Channel
-    .fromPath(params.file_list)
-    .collect()
-    .set { fileList }
+    fileList = Channel.fromPath(params.file_list).collect()
+
     MULTIQC(fileList, params.config_mqc)
 }
 
@@ -13,16 +11,15 @@ process MULTIQC {
 
     input:
     path fileList
-    path multiqcConfig
+    path multiqcConfig optional true  // Ensure multiqcConfig is optional
 
     output:
-    path("*")
+    path "*"
 
-    def isoDate = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    publishDir {"${params.outdir}" }, mode: params.publish_dir_mode, pattern: "multiqc_general_stats.csv", saveAs: { "${isoDate}.csv" }
-    
     script:
+    def isoDate = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     def config = multiqcConfig ? "--config $multiqcConfig" : ''
+
     """
     # Generate file list
     printf "%s\n" ${fileList[@]} > file_list.txt
@@ -33,6 +30,11 @@ process MULTIQC {
         --no-report \
         --force \
         --dirs
+
     mv multiqc_data/* .
+
+    # Ensure publishing happens inside the process
+    mkdir -p ${params.outdir}
+    mv multiqc_general_stats.csv ${params.outdir}/${isoDate}.csv
     """
 }
