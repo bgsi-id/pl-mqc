@@ -1,20 +1,24 @@
 nextflow.enable.dsl=2
 
 workflow {
-    // Read file list if provided, otherwise use all directories
-    def runDirs = params.file_list ? 
+    // Get directories from file list OR process all subdirectories
+    def selectedDirs = params.file_list ? 
         Channel.fromPath(params.file_list).splitCsv(header: false).map { it[0] } :
         Channel.fromPath("${params.dir_input}/*", type: 'dir').map { it.toString() }
 
-    runDirs.set { runDirectory }
-    MULTIQC(runDirectory, params.config_mqc)
+    // Collect all files from selected directories (assuming MultiQC needs actual data files)
+    selectedDirs
+        .flatMap { dir -> Channel.fromPath("${dir}/**", type: 'file') }
+        .set { runFiles }
+
+    MULTIQC(runFiles, params.config_mqc)
 }
 
 process MULTIQC {
     container 'biocontainers/multiqc:1.25--pyhdfd78af_0'
 
     input:
-    path runDirectory
+    path runFiles
     path multiqcConfig
 
     output:
@@ -25,9 +29,11 @@ process MULTIQC {
     
     script:
     def config = multiqcConfig ? "--config $multiqcConfig" : ''
+    
     """
+    echo ${runFiles} > file_list.txt
     multiqc ${config} \
-        --file-list ${runDirectory} \
+        --file-list file_list.txt \
         --data-dir \
         --data-format csv \
         --no-report \
