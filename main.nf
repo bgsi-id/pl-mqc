@@ -26,7 +26,7 @@ process MULTIQC {
     
     echo "Downloading files from S3..."
     while IFS= read -r line; do
-        aws s3 cp "$line" local_files/ --recursive
+        aws s3 cp "$line" local_files/"$line" --recursive
     done < !{fileList}
 
     find local_files -type f > local_file_list.txt
