@@ -1,15 +1,15 @@
 nextflow.enable.dsl=2
 
 workflow {
-    Channel.fromPath("${params.dir_input}", type: 'dir').set { runDirectory }
-    MULTIQC(runDirectory, params.config_mqc)
+    Channel.fromPath("${params.input_multi}").set { fileList }
+    MULTIQC(fileList, params.config_mqc)
 }
 
 process MULTIQC {
     container 'biocontainers/multiqc:1.25--pyhdfd78af_0'
 
     input:
-    path runDirectory
+    path fileList
     path multiqcConfig
 
     output:
@@ -22,12 +22,11 @@ process MULTIQC {
     def config = multiqcConfig ? "--config $multiqcConfig" : ''
     """
     multiqc ${config} \
-        --data-dir \
+        --file-list $(cat ${fileList}) \
         --data-format csv \
         --no-report \
         --force \
-        --dirs-depth 2 \
-        ${runDirectory}
+        --dirs
     mv multiqc_data/* .
     """
 }
