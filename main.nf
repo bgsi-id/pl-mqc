@@ -20,7 +20,19 @@ process MULTIQC {
 
     script:
     """
-    cat "$fileList"
+    mkdir -p local_files
+    while IFS= read -r file; do
+        aws s3 cp "$file" local_files/
+    done < "$fileList"
 
+    find local_files -type f > local_file_list.txt
+    
+    multiqc --file-list local_file_list.txt \
+        --data-dir \
+        --data-format csv \
+        --no-report \
+        --force \
+        -o multiqc_output
+    mv multiqc_output/multiqc_data/* multiqc_output/
     """
 }
