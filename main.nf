@@ -6,9 +6,10 @@ workflow {
         Channel.fromPath(params.file_list).splitCsv(header: false).map { it[0] } :
         Channel.fromPath("${params.dir_input}/*", type: 'dir').map { it.toString() }
 
-    // Collect all files from selected directories (assuming MultiQC needs actual data files)
+    // Collect all files from selected directories
     selectedDirs
         .flatMap { dir -> Channel.fromPath("${dir}/**", type: 'file') }
+        .collect()  // Converts to a list
         .set { runFiles }
 
     MULTIQC(runFiles, params.config_mqc)
@@ -18,7 +19,7 @@ process MULTIQC {
     container 'biocontainers/multiqc:1.25--pyhdfd78af_0'
 
     input:
-    path runFiles
+    path(runFiles)
     path multiqcConfig
 
     output:
@@ -29,9 +30,9 @@ process MULTIQC {
     
     script:
     def config = multiqcConfig ? "--config $multiqcConfig" : ''
-    
+
     """
-    echo ${runFiles} > file_list.txt
+    printf "%s\n" ${runFiles} > file_list.txt
     multiqc ${config} \
         --file-list file_list.txt \
         --data-dir \
@@ -41,3 +42,4 @@ process MULTIQC {
     mv multiqc_data/* .
     """
 }
+
