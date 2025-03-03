@@ -1,11 +1,5 @@
 nextflow.enable.dsl=2
 
-workflow {
-    fileList = Channel.fromPath(params.file_list).collect()
-
-    MULTIQC(fileList, params.config_mqc)
-}
-
 process MULTIQC {
     container 'biocontainers/multiqc:1.25--pyhdfd78af_0'
 
@@ -37,4 +31,10 @@ process MULTIQC {
     mkdir -p ${params.outdir}
     mv multiqc_general_stats.csv ${params.outdir}/${isoDate}.csv
     """
+}
+
+workflow {
+    fileList = Channel.fromPath(params.file_list).collect()
+
+    MULTIQC(fileList, params.config_mqc)
 }
