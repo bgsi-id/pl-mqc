@@ -1,16 +1,18 @@
-workflow {
-    Channel.value(params.dir_list)
-        .map { file(params.dir_list) }  // Ensure it's handled as a file
-        .set { dirListFile }
+nextflow.enable.dsl=2
 
-    MULTIQC(dirListFile, params.config_mqc)
+workflow {
+    Channel
+    .fromPath(params.file_list)
+    .collect()
+    .set { fileList }
+    MULTIQC(fileList, params.config_mqc)
 }
 
 process MULTIQC {
     container 'biocontainers/multiqc:1.25--pyhdfd78af_0'
 
     input:
-    path dirListFile
+    path fileList
     path multiqcConfig
 
     output:
@@ -18,12 +20,19 @@ process MULTIQC {
 
     def isoDate = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     publishDir {"${params.outdir}" }, mode: params.publish_dir_mode, pattern: "multiqc_general_stats.csv", saveAs: { "${isoDate}.csv" }
-
+    
     script:
     def config = multiqcConfig ? "--config $multiqcConfig" : ''
     """
-    aws s3 cp ${dirListFile} dir_list_local.txt  # Download S3 file
-    multiqc ${config} --file-list dir_list_local.txt --data-format csv --no-report --force --dirs
+    # Generate file list
+    printf "%s\n" ${fileList[@]} > file_list.txt
+
+    multiqc ${config} \
+        --file-list file_list.txt \
+        --data-format csv \
+        --no-report \
+        --force \
+        --dirs
     mv multiqc_data/* .
     """
 }
