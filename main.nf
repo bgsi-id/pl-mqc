@@ -38,6 +38,6 @@ process MULTIQC {
         --no-report \
         --force \
         -o multiqc_output
-    mv multiqc_output/multiqc_data/* multiqc_output/
+    mv multiqc_output/multiqc_data/* .
     '''
 }
