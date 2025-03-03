@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 workflow {
-    Channel.fromPath("${params.file-list}").set { fileList }
+    Channel.fromPath("${params.file_list}").set { fileList }
     MULTIQC(fileList, params.config_mqc)
 }
 
