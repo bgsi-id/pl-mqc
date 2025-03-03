@@ -9,7 +9,7 @@ process MULTIQC {
 
     input:
     val fileList
-    path multiqcConfig optional true
+    path multiqcConfig
     val outdir
 
     output:
