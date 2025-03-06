@@ -34,7 +34,7 @@ process MULTIQC {
         --data-dir \
         --data-format csv \
         --no-report \
-        --dirs \
+        --dirs-depth 6 \
         --force \
         -o multiqc_output
     mv multiqc_output/multiqc_data/* .
