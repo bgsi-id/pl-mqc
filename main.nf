@@ -31,7 +31,6 @@ process MULTIQC {
     find local_files -mindepth 1 -maxdepth 1 -type d > local_file_list.txt
 
     multiqc --file-list local_file_list.txt \
-        --data-dir \
         --data-format csv \
         --no-report \
         --dirs-depth 8 \
