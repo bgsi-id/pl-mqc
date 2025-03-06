@@ -28,13 +28,13 @@ process MULTIQC {
         aws s3 cp "$line" local_files/"$line" --recursive
     done < !{fileList}
 
-    find local_files -type f > local_file_list.txt
+    find local_files -mindepth 1 -maxdepth 1 -type d > local_file_list.txt
 
     multiqc --file-list local_file_list.txt \
         --data-dir \
         --data-format csv \
         --no-report \
-        --dirs-depth 6 \
+        --dirs-depth 8 \
         --force \
         -o multiqc_output
     mv multiqc_output/multiqc_data/* .
