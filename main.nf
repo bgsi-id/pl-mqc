@@ -1,7 +1,8 @@
 nextflow.enable.dsl=2
 
 workflow {
-    MULTIQC(params.input_file, params.config_mqc, params.outdir)
+    Channel.fromPath("${params.dir_input}", type: 'dir').set { runDirectory }
+    MULTIQC(runDirectory, params.input_file, params.config_mqc, params.outdir)
 }
 
 process MULTIQC {
@@ -32,12 +33,20 @@ process MULTIQC {
     
     aws s3 cp local_file_list.txt s3://bgsi-data-dev/RT/multiqc/local_file_list.txt
     
-    multiqc --file-list local_file_list.txt \
+    // multiqc --file-list local_file_list.txt \
+    //     --data-format csv \
+    //     --no-report \
+    //     --dirs-depth 10 \
+    //     --force \
+    //     -o multiqc_output
+    multiqc ${config} \
+        --file-list local_file_list.txt \
+        --data-dir \
         --data-format csv \
         --no-report \
-        --dirs-depth 10 \
         --force \
         -o multiqc_output
+        ${runDirectory}
     mv multiqc_output/multiqc_data/* .
     '''
 }
