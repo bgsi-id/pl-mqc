@@ -9,6 +9,7 @@ process MULTIQC {
     container 'biocontainers/multiqc:1.27.1--pyhdfd78af_0'
 
     input:
+    path runDirectory
     path fileList
     path multiqcConfig
     val outdir
