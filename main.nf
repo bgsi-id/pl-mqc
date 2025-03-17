@@ -26,7 +26,7 @@ process MULTIQC {
     apt-get update && apt-get install -y awscli || yum install -y awscli
 
     while IFS= read -r line; do d=\${line%/}; dir=\${d##*/} 
-        aws s3 cp "\$line" "local_files/\$dir" --recursive
+        aws s3 cp "\$line" "local_files/\$dir/" --recursive
     done < $fileList
 
     # Create a new file list with local paths
